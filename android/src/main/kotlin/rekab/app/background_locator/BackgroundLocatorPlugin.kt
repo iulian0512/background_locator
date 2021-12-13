@@ -206,6 +206,13 @@ class BackgroundLocatorPlugin
         }
     }
 
+    private  fun fromIntToLong(obj:Any):Any{
+        if(obj is Int)
+            return obj.toLong()
+        else
+            return obj;//no conversion needed
+    }
+
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             Keys.METHOD_PLUGIN_INITIALIZE_SERVICE -> {
@@ -218,7 +225,10 @@ class BackgroundLocatorPlugin
                 result.success(true)
             }
             Keys.METHOD_PLUGIN_REGISTER_LOCATION_UPDATE -> {
-                val args: Map<Any, Any> = call.arguments()
+                var args: Map<Any, Any> = call.arguments()
+                //there is an issue where the callback handle gets to the native side as int but
+                //this lib performs as Long casts all over this converts all ints to long
+                args=args.map { it.key to fromIntToLong(it.value) }.toMap();
 
                 // save setting to use it when device reboots
                 PreferencesManager.saveSettings(context!!, args)
